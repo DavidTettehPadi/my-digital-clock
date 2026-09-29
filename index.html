@@ -1,0 +1,737 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Digital Clock</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            color-scheme: dark;
+            --night: #111816;
+            --line: #33413b;
+            --muted: #9aa9a0;
+            --paper: #edf2e9;
+            --lime: #c5f36d;
+            --coral: #ff806b;
+            --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+            --sans: "Space Grotesk", "Avenir Next", sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            padding: 48px 5vw;
+            color: var(--paper);
+            font-family: var(--sans);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--night);
+            background-image:
+                linear-gradient(rgba(237, 242, 233, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(237, 242, 233, 0.035) 1px, transparent 1px);
+            background-size: 48px 48px;
+        }
+
+        .clock-container {
+            width: min(100%, 1120px);
+            display: grid;
+            grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+            align-items: start;
+            animation: arrive 500ms ease-out both;
+        }
+
+        h1 {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--line);
+            color: var(--paper);
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        h1::before {
+            width: 12px;
+            height: 12px;
+            content: "";
+            background: var(--lime);
+            border-radius: 2px;
+        }
+
+        #clock {
+            grid-column: 1;
+            grid-row: 2;
+            margin-top: 54px;
+            color: var(--paper);
+            font-family: var(--mono);
+            font-size: 104px;
+            font-weight: 400;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        #date {
+            grid-column: 1;
+            grid-row: 3;
+            margin-top: 18px;
+            color: var(--lime);
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .stopwatch {
+            grid-column: 2;
+            grid-row: 2 / span 2;
+            min-width: 0;
+            margin-top: 32px;
+            padding: 22px 0 28px 38px;
+            border-left: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .stopwatch h2 {
+            margin-bottom: 28px;
+            color: var(--muted);
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        #stopwatch-display {
+            margin-bottom: 28px;
+            color: var(--lime);
+            font-family: var(--mono);
+            font-size: 38px;
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .stopwatch-buttons {
+            display: flex;
+            justify-content: flex-start;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            min-height: 44px;
+            padding: 0 17px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            font: 600 14px var(--sans);
+            cursor: pointer;
+            transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease, transform 150ms ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:focus-visible,
+        input:focus-visible {
+            outline: 2px solid var(--lime);
+            outline-offset: 3px;
+        }
+
+        #start-btn,
+        #set-alarm-btn {
+            background: var(--lime);
+            color: var(--night);
+        }
+
+        #start-btn:hover,
+        #set-alarm-btn:hover {
+            background: #d5ff91;
+        }
+
+        #pause-btn,
+        #lap-btn,
+        #reset-btn,
+        #stop-alarm-btn {
+            border-color: #536159;
+            background: transparent;
+            color: var(--paper);
+        }
+
+        #reset-btn,
+        #stop-alarm-btn {
+            color: var(--coral);
+        }
+
+        #pause-btn:hover,
+        #lap-btn:hover,
+        #reset-btn:hover,
+        #stop-alarm-btn:hover {
+            border-color: var(--paper);
+            background: rgba(237, 242, 233, 0.06);
+        }
+
+        #laps {
+            margin-top: 22px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .lap {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 11px 0;
+            border-bottom: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .lap-number {
+            color: var(--muted);
+        }
+
+        .lap-time {
+            color: var(--lime);
+            font-family: var(--mono);
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .alarm {
+            grid-column: 1 / -1;
+            grid-row: 4;
+            display: grid;
+            grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.2fr);
+            align-items: center;
+            column-gap: 40px;
+            margin-top: 34px;
+            padding-top: 28px;
+            border-top: 1px solid var(--line);
+        }
+
+        .alarm h2 {
+            grid-column: 1;
+            grid-row: 1;
+            margin-bottom: 10px;
+            color: var(--muted);
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .alarm label {
+            grid-column: 1;
+            grid-row: 2;
+            color: var(--paper);
+            font-size: 14px;
+        }
+
+        #alarm-time {
+            width: 100%;
+            min-height: 46px;
+            padding: 0 12px;
+            border: 1px solid #536159;
+            border-radius: 4px;
+            background: #18221e;
+            color: var(--paper);
+            font: 500 15px var(--mono);
+        }
+
+        .alarm > div:first-of-type {
+            grid-column: 2;
+            grid-row: 1 / span 2;
+        }
+
+        .alarm-buttons {
+            grid-column: 2;
+            grid-row: 3;
+            display: flex;
+            justify-content: flex-start;
+            gap: 8px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+
+        #alarm-status {
+            grid-column: 1;
+            grid-row: 3;
+            margin-top: 14px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        @keyframes arrive {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 760px) {
+            body {
+                padding: 28px 24px;
+                align-items: flex-start;
+            }
+
+            .clock-container {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            h1 {
+                grid-column: 1;
+            }
+
+            #clock {
+                grid-column: 1;
+                grid-row: auto;
+                margin-top: 42px;
+                font-size: 72px;
+            }
+
+            #date {
+                grid-column: 1;
+                grid-row: auto;
+            }
+
+            .stopwatch {
+                grid-column: 1;
+                grid-row: auto;
+                margin-top: 34px;
+                padding: 26px 0 24px;
+                border-top: 1px solid var(--line);
+                border-left: 0;
+            }
+
+            .alarm {
+                grid-column: 1;
+                grid-row: auto;
+                margin-top: 8px;
+                grid-template-columns: minmax(0, 1fr);
+                row-gap: 10px;
+            }
+
+            .alarm h2,
+            .alarm label,
+            .alarm > div:first-of-type,
+            .alarm-buttons,
+            #alarm-status {
+                grid-column: 1;
+                grid-row: auto;
+            }
+
+            .alarm h2,
+            #alarm-status,
+            .alarm-buttons {
+                margin-top: 0;
+            }
+        }
+
+        @media (max-width: 420px) {
+            body {
+                padding: 22px 18px;
+            }
+
+            #clock {
+                font-size: 52px;
+            }
+
+            #date {
+                font-size: 14px;
+            }
+
+            #stopwatch-display {
+                font-size: 32px;
+            }
+
+            .stopwatch-buttons button,
+            .alarm-buttons button {
+                padding: 0 13px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="clock-container">
+        <h1>My Digital Clock</h1>
+
+        <div id="clock">00:00:00</div>
+
+        <div id="date">Loading date...</div>
+
+    <div class="stopwatch">
+
+                <h2>Stopwatch</h2>
+
+                <div id="stopwatch-display">00:00:00.00</div>
+
+                <div class="stopwatch-buttons">
+                    <button id="start-btn">Start</button>
+                    <button id="pause-btn">Pause</button>
+                    <button id="lap-btn">Lap</button>
+                    <button id="reset-btn">Reset</button>
+                </div>
+
+                <div id="laps"></div>
+
+        </div>
+
+        <div class="alarm">
+            <h2>Alarm</h2>
+            <label for="alarm-time">Alarm date and time</label>
+            <div><input id="alarm-time" type="datetime-local"></div>
+            <div class="alarm-buttons">
+                <button id="set-alarm-btn" type="button">Set alarm</button>
+                <button id="stop-alarm-btn" type="button">Stop alarm</button>
+            </div>
+            <p id="alarm-status" role="status" aria-live="polite">No alarm set</p>
+        </div>
+    </div>
+
+    <script>
+        // Get the clock and date elements
+        const clock = document.getElementById("clock");
+        const date = document.getElementById("date");
+
+        // Function to update the clock
+        function updateClock() {
+
+            // Get the current date and time
+            const now = new Date();
+
+            // Format the time
+            const time = now.toLocaleTimeString("en-GB", {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: false
+            });
+
+            // Format the date
+            const currentDate = now.toLocaleDateString("en-GB", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                year: "numeric"
+            });
+
+            // Display the time and date
+            clock.textContent = time;
+            date.textContent = currentDate;
+        }
+
+        // Run the clock immediately
+        updateClock();
+
+        // Update the clock every second
+        setInterval(updateClock, 1000);
+
+
+        // ==============================
+        // STOPWATCH FUNCTIONALITY
+        // ==============================
+
+        // Get stopwatch elements
+        const stopwatchDisplay = document.getElementById(
+            "stopwatch-display"
+        );
+
+        const startBtn = document.getElementById("start-btn");
+        const pauseBtn = document.getElementById("pause-btn");
+        const lapBtn = document.getElementById("lap-btn");
+        const resetBtn = document.getElementById("reset-btn");
+        const lapsContainer = document.getElementById("laps");
+
+        // Stopwatch variables
+        let startTime = 0;
+        let elapsedTime = 0;
+        let stopwatchInterval = null;
+        let isRunning = false;
+        let lapStartTime = 0;
+        let lapNumber = 0;
+
+        // Format and display elapsed time
+        function updateStopwatch() {
+
+            const currentTime = isRunning
+                ? elapsedTime + (performance.now() - startTime)
+                : elapsedTime;
+
+            // Convert milliseconds into time units
+            const totalCentiseconds = Math.floor(currentTime / 10);
+
+            const hours = Math.floor(totalCentiseconds / 360000);
+
+            const minutes = Math.floor(
+                (totalCentiseconds % 360000) / 6000
+            );
+
+            const seconds = Math.floor(
+                (totalCentiseconds % 6000) / 100
+            );
+
+            const centiseconds = totalCentiseconds % 100;
+
+            // Format numbers with leading zeros
+            const formattedTime =
+                String(hours).padStart(2, "0") + ":" +
+                String(minutes).padStart(2, "0") + ":" +
+                String(seconds).padStart(2, "0") + "." +
+                String(centiseconds).padStart(2, "0");
+
+            stopwatchDisplay.textContent = formattedTime;
+        }
+
+        // Record a lap
+        lapBtn.addEventListener("click", function () {
+
+            if (!isRunning) {
+                return;
+            }
+
+            const currentTime = performance.now();
+
+            const totalElapsed =
+                elapsedTime + (currentTime - startTime);
+
+            const lapTime =
+                totalElapsed - lapStartTime;
+
+            lapStartTime = totalElapsed;
+
+            lapNumber++;
+
+            // Convert lap time to readable format
+            const totalCentiseconds = Math.floor(lapTime / 10);
+
+            const hours = Math.floor(
+                totalCentiseconds / 360000
+            );
+
+            const minutes = Math.floor(
+                (totalCentiseconds % 360000) / 6000
+            );
+
+            const seconds = Math.floor(
+                (totalCentiseconds % 6000) / 100
+            );
+
+            const centiseconds = totalCentiseconds % 100;
+
+            const formattedLapTime =
+                String(hours).padStart(2, "0") + ":" +
+                String(minutes).padStart(2, "0") + ":" +
+                String(seconds).padStart(2, "0") + "." +
+                String(centiseconds).padStart(2, "0");
+
+            // Create lap element
+            const lap = document.createElement("div");
+
+            lap.classList.add("lap");
+
+            lap.innerHTML = `
+                <span class="lap-number">
+                    Lap ${lapNumber}
+                </span>
+
+                <span class="lap-time">
+                    ${formattedLapTime}
+                </span>
+            `;
+
+            // Add newest lap to the top
+            lapsContainer.prepend(lap);
+        });
+
+        // Start the stopwatch
+        startBtn.addEventListener("click", function () {
+
+            if (!isRunning) {
+
+                startTime = performance.now();
+                isRunning = true;
+
+                stopwatchInterval = setInterval(
+                    updateStopwatch,
+                    10
+                );
+            }
+
+        });
+
+        // Pause the stopwatch
+        pauseBtn.addEventListener("click", function () {
+
+            if (isRunning) {
+
+                elapsedTime += performance.now() - startTime;
+
+                isRunning = false;
+
+                clearInterval(stopwatchInterval);
+
+                updateStopwatch();
+
+            }
+
+        });
+
+        resetBtn.addEventListener("click", function () {
+
+            clearInterval(stopwatchInterval);
+
+            startTime = 0;
+            elapsedTime = 0;
+            lapStartTime = 0;
+            lapNumber = 0;
+            isRunning = false;
+
+            lapsContainer.innerHTML = "";
+
+            updateStopwatch();
+
+        });
+
+        // ==============================
+        // ALARM CLOCK
+        // ==============================
+
+        // Get alarm elements
+        const alarmTimeInput = document.getElementById("alarm-time");
+        const setAlarmBtn = document.getElementById("set-alarm-btn");
+        const stopAlarmBtn = document.getElementById("stop-alarm-btn");
+        const alarmStatus = document.getElementById("alarm-status");
+
+        // Alarm variables
+        let alarmAt = null;
+        let alarmInterval = null;
+        let alarmSound = null;
+        let audioContext = null;
+
+        // Create alarm sound using Web Audio API
+        function playAlarmSound() {
+
+            if (!audioContext) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContextClass) {
+                    alarmStatus.textContent = "Audio is not supported in this browser.";
+                    return;
+                }
+                audioContext = new AudioContextClass();
+            }
+
+            audioContext.resume();
+
+            function beep() {
+
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.frequency.value = 800;
+                oscillator.type = "sine";
+
+                gainNode.gain.setValueAtTime(
+                    0.3,
+                    audioContext.currentTime
+                );
+
+                oscillator.start();
+
+                oscillator.stop(
+                    audioContext.currentTime + 0.5
+                );
+            }
+
+            beep();
+
+            // Repeat the beep
+            alarmSound = setInterval(beep, 1000);
+        }
+
+        setAlarmBtn.addEventListener("click", function () {
+            const selectedTime = alarmTimeInput.value;
+
+            if (!selectedTime) {
+                alarmStatus.textContent = "Please select a date and time first.";
+                return;
+            }
+
+            const selectedDateTime = new Date(selectedTime);
+            if (Number.isNaN(selectedDateTime.getTime()) || selectedDateTime <= new Date()) {
+                alarmStatus.textContent = "Please select a future date and time.";
+                return;
+            }
+
+            if (alarmSound) {
+                clearInterval(alarmSound);
+                alarmSound = null;
+            }
+
+            alarmAt = selectedDateTime.getTime();
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (AudioContextClass && !audioContext) {
+                audioContext = new AudioContextClass();
+            }
+            if (audioContext) {
+                audioContext.resume();
+            }
+            alarmStatus.textContent = `Alarm set for ${selectedDateTime.toLocaleString()}`;
+
+        });
+
+        alarmInterval = setInterval(function () {
+            if (alarmAt === null) {
+                return;
+            }
+
+            if (Date.now() >= alarmAt) {
+                playAlarmSound();
+                alarmStatus.textContent = "Alarm is ringing!";
+                alarmAt = null;
+            }
+        }, 1000);
+
+        stopAlarmBtn.addEventListener("click", function () {
+            if (alarmSound) {
+                clearInterval(alarmSound);
+                alarmSound = null;
+            }
+            alarmAt = null;
+            alarmStatus.textContent = "Alarm stopped";
+        });
+
+    </script>
+
+</body>
+</html>
