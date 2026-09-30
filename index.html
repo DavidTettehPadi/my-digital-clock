@@ -18,12 +18,14 @@
 
         :root {
             color-scheme: dark;
-            --night: #111816;
-            --line: #33413b;
-            --muted: #9aa9a0;
-            --paper: #edf2e9;
-            --lime: #c5f36d;
-            --coral: #ff806b;
+            --night: #0b1120;
+            --panel: #111827;
+            --line: rgba(148, 163, 184, 0.25);
+            --muted: #94a3b8;
+            --paper: #e2e8f0;
+            --primary: #60a5fa;
+            --secondary: #38bdf8;
+            --accent: #93c5fd;
             --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
             --sans: "Space Grotesk", "Avenir Next", sans-serif;
         }
@@ -38,9 +40,11 @@
             align-items: center;
             background-color: var(--night);
             background-image:
-                linear-gradient(rgba(237, 242, 233, 0.035) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(237, 242, 233, 0.035) 1px, transparent 1px);
-            background-size: 48px 48px;
+                radial-gradient(circle at top left, rgba(96, 165, 250, 0.18), transparent 32%),
+                radial-gradient(circle at bottom right, rgba(56, 189, 248, 0.14), transparent 28%),
+                linear-gradient(rgba(226, 232, 240, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(226, 232, 240, 0.035) 1px, transparent 1px);
+            background-size: auto, auto, 48px 48px, 48px 48px;
         }
 
         .clock-container {
@@ -67,8 +71,9 @@
             width: 12px;
             height: 12px;
             content: "";
-            background: var(--lime);
+            background: var(--primary);
             border-radius: 2px;
+            box-shadow: 0 0 16px rgba(96, 165, 250, 0.8);
         }
 
         #clock {
@@ -82,15 +87,17 @@
             font-variant-numeric: tabular-nums;
             line-height: 1;
             white-space: nowrap;
+            text-shadow: 0 0 24px rgba(96, 165, 250, 0.2);
         }
 
         #date {
             grid-column: 1;
             grid-row: 3;
             margin-top: 18px;
-            color: var(--lime);
+            color: var(--secondary);
             font-size: 16px;
             font-weight: 500;
+            letter-spacing: 0.04em;
         }
 
         .stopwatch {
@@ -112,12 +119,13 @@
 
         #stopwatch-display {
             margin-bottom: 28px;
-            color: var(--lime);
+            color: var(--primary);
             font-family: var(--mono);
             font-size: 38px;
             font-weight: 500;
             font-variant-numeric: tabular-nums;
             white-space: nowrap;
+            text-shadow: 0 0 18px rgba(96, 165, 250, 0.2);
         }
 
         .stopwatch-buttons {
@@ -153,35 +161,36 @@
 
         #start-btn,
         #set-alarm-btn {
-            background: var(--lime);
-            color: var(--night);
+            background: var(--primary);
+            color: #04111d;
+            box-shadow: 0 10px 22px rgba(96, 165, 250, 0.25);
         }
 
         #start-btn:hover,
         #set-alarm-btn:hover {
-            background: #d5ff91;
+            background: #7bb7ff;
         }
 
         #pause-btn,
         #lap-btn,
         #reset-btn,
         #stop-alarm-btn {
-            border-color: #536159;
-            background: transparent;
+            border-color: rgba(148, 163, 184, 0.35);
+            background: rgba(17, 24, 39, 0.8);
             color: var(--paper);
         }
 
         #reset-btn,
         #stop-alarm-btn {
-            color: var(--coral);
+            color: var(--accent);
         }
 
         #pause-btn:hover,
         #lap-btn:hover,
         #reset-btn:hover,
         #stop-alarm-btn:hover {
-            border-color: var(--paper);
-            background: rgba(237, 242, 233, 0.06);
+            border-color: var(--primary);
+            background: rgba(96, 165, 250, 0.08);
         }
 
         #laps {
@@ -205,7 +214,7 @@
         }
 
         .lap-time {
-            color: var(--lime);
+            color: var(--primary);
             font-family: var(--mono);
             font-weight: 500;
             font-variant-numeric: tabular-nums;
